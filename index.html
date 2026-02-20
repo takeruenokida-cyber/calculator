@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>万能計算機</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --surface: #13131c;
+    --surface2: #1c1c2e;
+    --border: #2a2a3e;
+    --accent: #7c5cfc;
+    --accent2: #00d4aa;
+    --accent3: #ff6b6b;
+    --accent4: #ffd166;
+    --xm: #ff6000;
+    --text: #e8e8f0;
+    --muted: #6666aa;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Syne', sans-serif; min-height: 100vh; padding: 24px 16px 60px;
+  }
+  body::before {
+    content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+    background:
+      radial-gradient(ellipse at 25% 15%, rgba(124,92,252,0.09) 0%, transparent 50%),
+      radial-gradient(ellipse at 75% 85%, rgba(255,96,0,0.05) 0%, transparent 50%);
+    pointer-events: none; z-index: 0;
+  }
+  .wrapper { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
+
+  header { text-align: center; margin-bottom: 28px; }
+  header h1 {
+    font-size: clamp(1.8rem, 5vw, 3rem); font-weight: 800; letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff 0%, var(--accent) 55%, var(--xm) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  header p { color: var(--muted); font-size: 0.8rem; margin-top: 6px; font-family: 'JetBrains Mono', monospace; }
+
+  .tabs {
+    display: flex; gap: 4px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 4px; margin-bottom: 18px; flex-wrap: wrap;
+  }
+  .tab-btn {
+    flex: 1; min-width: 68px; padding: 8px 6px; background: transparent; border: none;
+    border-radius: 8px; color: var(--muted); font-family: 'Syne', sans-serif;
+    font-weight: 600; font-size: 0.72rem; cursor: pointer; transition: all 0.2s; text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+  }
+  .tabs .tab-btn:hover { color: var(--text); background: var(--surface2); }
+  .tabs .tab-btn.active { background: var(--accent); color: #fff; box-shadow: 0 2px 12px rgba(124,92,252,0.4); }
+  .tabs .tab-btn.xm-tab.active { background: var(--xm); box-shadow: 0 2px 12px rgba(255,96,0,0.4); }
+
+  .panel { display: none; animation: fadeIn 0.2s ease; }
+  .panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px; margin-bottom: 14px;
+  }
+  .card.xm-card { border-color: rgba(255,96,0,0.3); }
+  .card-title { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 18px; }
+  .card-title.xm { color: var(--xm); }
+
+  label { display: block; font-size: 0.75rem; color: var(--muted); margin-bottom: 5px; font-family: 'JetBrains Mono', monospace; }
+  input, select {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 13px; color: var(--text);
+    font-family: 'JetBrains Mono', monospace; font-size: 0.93rem; margin-bottom: 14px;
+    transition: border-color 0.2s; outline: none; -moz-appearance: textfield;
+  }
+  input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; }
+  input:focus, select:focus { border-color: var(--accent); }
+  select option { background: var(--surface2); }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+
+  .btn {
+    width: 100%; padding: 13px; border: none; border-radius: 8px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.92rem;
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.02em;
+  }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), #5a3de8); color: #fff; box-shadow: 0 4px 16px rgba(124,92,252,0.35); }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,92,252,0.5); }
+  .btn-xm { background: linear-gradient(135deg, var(--xm), #cc4d00); color: #fff; box-shadow: 0 4px 16px rgba(255,96,0,0.3); }
+  .btn-xm:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,96,0,0.45); }
+
+  .result-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-top: 14px; }
+  .result-label { font-size: 0.68rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 5px; }
+  .result-value { font-family: 'JetBrains Mono', monospace; font-size: 1.7rem; font-weight: 500; color: var(--accent2); word-break: break-all; }
+  .result-sub { font-size: 0.78rem; color: var(--muted); margin-top: 10px; font-family: 'JetBrains Mono', monospace; line-height: 1.9; }
+  .result-sub span { color: var(--text); }
+  .highlight { color: var(--accent3) !important; }
+  .positive { color: var(--accent2) !important; }
+  .warn { color: var(--accent4) !important; }
+  .xm-color { color: var(--xm) !important; }
+
+  /* INFO BOX */
+  .info-box {
+    background: rgba(255,96,0,0.06); border: 1px solid rgba(255,96,0,0.25);
+    border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;
+    font-size: 0.76rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; line-height: 1.7;
+  }
+  .info-box strong { color: var(--xm); }
+
+  /* TAX BRACKET TABLE */
+  .bracket-table { width: 100%; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; margin-top: 12px; }
+  .bracket-table th { color: var(--muted); text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--border); }
+  .bracket-table td { padding: 5px 8px; border-bottom: 1px solid rgba(42,42,62,0.5); color: var(--text); }
+  .bracket-table tr.active-row td { color: var(--accent2); font-weight: 500; background: rgba(0,212,170,0.06); border-radius: 4px; }
+
+  /* SECTION */
+  .section-label { font-size: 0.7rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 10px; margin-top: 2px; border-left: 2px solid var(--xm); padding-left: 8px; }
+
+  /* CURRENCY */
+  .rate-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 5px 12px; font-size: 0.72rem;
+    font-family: 'JetBrains Mono', monospace; color: var(--muted); margin-bottom: 16px;
+  }
+  .rate-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent3); animation: pulse 2s infinite; }
+  .rate-badge .dot.live { background: var(--accent2); }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+  .currency-big { display: grid; grid-template-columns: 1fr 48px 1fr; gap: 10px; align-items: end; margin-bottom: 14px; }
+  .swap-btn { width: 48px; height: 44px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface2); color: var(--accent); font-size: 1.2rem; cursor: pointer; transition: all 0.2s; margin-bottom: 14px; display: flex; align-items: center; justify-content: center; }
+  .swap-btn:hover { background: var(--accent); color: #fff; }
+  .rates-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 7px; margin-top: 12px; }
+  .rate-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 9px 11px; cursor: pointer; transition: all 0.2s; }
+  .rate-card:hover { border-color: var(--accent); }
+  .rate-card .rc-pair { font-size: 0.68rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+  .rate-card .rc-val { font-size: 0.95rem; font-weight: 500; color: var(--text); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+  /* CALC */
+  .calc-display { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; text-align: right; margin-bottom: 10px; }
+  .calc-expr { font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--muted); min-height: 18px; }
+  .calc-num { font-family: 'JetBrains Mono', monospace; font-size: 2rem; color: var(--text); word-break: break-all; }
+  .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+  .calc-key {
+    padding: 17px 8px; border: none; border-radius: 8px;
+    font-family: 'JetBrains Mono', monospace; font-size: 1.1rem; font-weight: 400;
+    cursor: pointer;
+    transition: transform 0.12s cubic-bezier(0.34,1.56,0.64,1), background 0.12s ease, box-shadow 0.12s ease;
+    background: var(--surface2); color: var(--text); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center; line-height: 1;
+    box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+  }
+  .calc-key:hover { background: var(--surface); }
+  .calc-key:active {
+    transform: scale(0.88);
+    background: var(--border) !important;
+    box-shadow: 0 0 0 rgba(0,0,0,0) !important;
+    transition: transform 0.05s ease, background 0.05s ease, box-shadow 0.05s ease;
+  }
+  .calc-key.eq:active { background: #4a2fd0 !important; }
+  .calc-key.op:active { background: rgba(124,92,252,0.25) !important; }
+  .calc-key.clear:active { background: rgba(255,107,107,0.2) !important; }
+  .calc-key.op { color: var(--accent); }
+  .calc-key.op svg { stroke: var(--accent); }
+  .calc-key.eq { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .calc-key.clear { color: var(--accent3); }
+  .calc-key.span2 { grid-column: span 2; }
+  /* SVGアイコン共通 */
+  .ic { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .ic svg { display: block; }
+  .history-list { list-style: none; max-height: 120px; overflow-y: auto; margin-top: 10px; }
+  .history-list li { font-family: 'JetBrains Mono', monospace; font-size: 0.77rem; color: var(--muted); padding: 3px 0; border-bottom: 1px solid var(--border); }
+
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ============================================
+     XM STEP UI
+  ============================================ */
+  .step-indicator {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0; margin-bottom: 18px; padding: 0 16px;
+  }
+  .step-dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); font-size: 0.72rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s; font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0;
+  }
+  .step-dot.active { background: var(--xm); border-color: var(--xm); color: #fff; box-shadow: 0 0 12px rgba(255,96,0,0.4); }
+  .step-dot.done { background: var(--accent2); border-color: var(--accent2); color: #0a0a0f; }
+  .step-line { flex: 1; height: 1px; background: var(--border); margin: 0 6px; transition: background 0.3s; }
+  .step-line.done { background: var(--accent2); }
+
+  .step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+  .step-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .xm-bg { background: var(--xm); }
+  .step-title { font-size: 0.9rem; font-weight: 700; color: var(--text); }
+  .step-sub { font-size: 0.72rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
+
+  /* ガイドボックス */
+  .guide-box {
+    background: rgba(255,96,0,0.05); border: 1px solid rgba(255,96,0,0.2);
+    border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;
+  }
+  .guide-title { font-size: 0.68rem; font-weight: 700; color: var(--xm); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+  .guide-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 8px; }
+  .guide-tag { font-size: 0.68rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; padding: 2px 7px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; margin-top: 1px; }
+  .guide-tag.xm { background: rgba(255,96,0,0.15); color: var(--xm); }
+  .guide-tag.accent { background: rgba(124,92,252,0.15); color: var(--accent); }
+  .guide-desc { font-size: 0.74rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; line-height: 1.6; }
+  .guide-note { font-size: 0.68rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,96,0,0.15); }
+
+  /* 入力 + 単位 */
+  .input-with-unit { position: relative; margin-bottom: 14px; }
+  .input-with-unit input { padding-right: 36px; margin-bottom: 0; }
+  .unit { position: absolute; right: 13px; top: 50%; transform: translateY(-50%); font-size: 0.78rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; pointer-events: none; }
+
+  /* label hint */
+  .label-hint { color: var(--muted); font-size: 0.68rem; font-weight: 400; }
+
+  /* step1 mini summary */
+  .xm-summary-mini { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--muted); margin-bottom: 14px; padding: 8px 12px; background: var(--surface2); border-radius: 6px; }
+
+  /* アコーディオン */
+  .accordion-btn {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 11px 14px; color: var(--muted);
+    font-family: 'Syne', sans-serif; font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; display: flex; align-items: center; gap: 8px;
+    transition: all 0.2s; text-align: left; margin-bottom: 0;
+  }
+  .accordion-btn:hover { color: var(--text); border-color: var(--accent); }
+  .accordion-btn.open { color: var(--text); border-color: var(--accent); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+  .accordion-body {
+    display: none; background: var(--surface2); border: 1px solid var(--accent);
+    border-top: none; border-radius: 0 0 8px 8px; padding: 14px; margin-bottom: 14px;
+  }
+  .accordion-body.open { display: block; }
+  .accordion-body input { background: var(--bg); }
+
+  /* 戻るボタン */
+  .btn-back {
+    flex: 1; padding: 13px; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; color: var(--muted); font-family: 'Syne', sans-serif;
+    font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all 0.2s;
+  }
+  .btn-back:hover { color: var(--text); border-color: var(--accent); }
+
+  /* 結果ビジュアル */
+  .result-visual-main { margin-bottom: 16px; }
+  .rv-big-label { font-size: 0.68rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 4px; }
+  .rv-big-val { font-family: 'JetBrains Mono', monospace; font-size: 2rem; font-weight: 500; word-break: break-all; margin-bottom: 2px; }
+  .rv-big-sub { font-size: 0.72rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
+
+  /* 内訳バーグラフ */
+  .breakdown-bar { margin: 16px 0; }
+  .bar-track { height: 28px; border-radius: 6px; background: var(--surface); overflow: hidden; display: flex; }
+  .bar-seg { height: 100%; transition: width 0.6s ease; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-family: 'JetBrains Mono', monospace; color: rgba(255,255,255,0.85); font-weight: 600; overflow: hidden; white-space: nowrap; }
+  .bar-labels { display: flex; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+  .bar-label-item { display: flex; align-items: center; gap: 5px; font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: var(--muted); }
+  .bar-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+  /* 内訳グリッド */
+  .breakdown-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .bd-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .bd-label { font-size: 0.65rem; color: var(--muted); font-family: 'JetBrains Mono', monospace; margin-bottom: 4px; }
+  .bd-val { font-size: 0.95rem; font-family: 'JetBrains Mono', monospace; font-weight: 500; color: var(--text); }
+
+  /* 確定申告バナー */
+  .filing-banner { border-radius: 8px; padding: 12px 14px; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; line-height: 1.7; }
+  .filing-banner.need { background: rgba(255,96,0,0.08); border: 1px solid rgba(255,96,0,0.3); }
+  .filing-banner.noneed { background: rgba(0,212,170,0.08); border: 1px solid rgba(0,212,170,0.3); }
+  .filing-banner-title { font-size: 0.95rem; font-weight: 700; margin-bottom: 6px; }
+
+  /* ============================================
+     MOBILE FIRST — 基本スタイルはモバイル用
+  ============================================ */
+
+  /* body: ボトムナビ分の余白 */
+  body { padding: 16px 12px 90px; }
+  header { margin-bottom: 18px; }
+  header p { font-size: 0.72rem; }
+  .card { padding: 16px 14px; margin-bottom: 10px; }
+
+  /* 上部タブはモバイルで非表示 */
+  .tabs { display: none; }
+
+  /* ボトムナビ: モバイルで常に表示 */
+  .bottom-nav {
+    display: flex;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+  }
+  .bottom-nav .tab-btn {
+    flex: 1; padding: 6px 2px 4px; border-radius: 6px;
+    font-size: 0.6rem; gap: 2px; min-width: 0;
+    color: var(--muted); background: transparent; border: none;
+    font-family: 'Syne', sans-serif; font-weight: 600;
+    cursor: pointer; transition: color 0.2s;
+    display: flex; flex-direction: column; align-items: center;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bottom-nav .tab-btn.active { color: var(--accent); background: transparent !important; box-shadow: none !important; }
+  .bottom-nav .tab-btn.xm-tab.active { color: var(--xm); background: transparent !important; box-shadow: none !important; }
+  .bottom-nav .tab-btn svg { width: 20px; height: 20px; }
+
+  /* グリッド: モバイルは1列 */
+  .row  { grid-template-columns: 1fr; }
+  .row3 { grid-template-columns: 1fr; }
+
+  /* 通貨換算の中央ボタン列は維持 */
+  .currency-big { grid-template-columns: 1fr 44px 1fr; gap: 6px; }
+  .swap-btn { width: 44px; height: 44px; }
+
+  /* 入力 */
+  input, select { font-size: 1rem; padding: 13px 12px; margin-bottom: 12px; }
+  label { font-size: 0.78rem; margin-bottom: 4px; }
+
+  /* ボタン */
+  .btn { padding: 15px; font-size: 0.95rem; }
+
+  /* 計算機 */
+  .calc-display { padding: 14px 16px; margin-bottom: 8px; }
+  .calc-num { font-size: 2.4rem; }
+  .calc-grid { gap: 6px; }
+  .calc-key {
+    padding: 0;
+    height: calc((100vw - 24px - 3 * 6px) / 4);
+    min-height: 60px;
+    font-size: 1.2rem;
+    border-radius: 10px;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.35);
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.12s cubic-bezier(0.34,1.56,0.64,1), background 0.1s ease, box-shadow 0.1s ease;
+  }
+  .calc-key svg { width: 22px; height: 22px; }
+
+  /* 結果 */
+  .result-value { font-size: 1.5rem; }
+  .result-sub { font-size: 0.8rem; line-height: 1.85; }
+  .info-box { font-size: 0.78rem; line-height: 1.75; }
+  .rates-grid { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; }
+  .section-label { font-size: 0.72rem; margin-top: 4px; margin-bottom: 8px; }
+  .bracket-table { font-size: 0.74rem; }
+  .bracket-table td, .bracket-table th { padding: 5px 6px; }
+
+  /* ============================================
+     DESKTOP OVERRIDES — 601px以上で上書き
+  ============================================ */
+  @media (min-width: 601px) {
+    body { padding: 24px 16px 60px; }
+    header { margin-bottom: 28px; }
+    header p { font-size: 0.8rem; }
+    .card { padding: 22px; margin-bottom: 14px; }
+
+    /* 上部タブを表示、ボトムナビを非表示 */
+    .tabs { display: flex; }
+    .bottom-nav { display: none; }
+
+    /* グリッド: デスクトップで複数列 */
+    .row  { grid-template-columns: 1fr 1fr; }
+    .row3 { grid-template-columns: 1fr 1fr 1fr; }
+    .currency-big { grid-template-columns: 1fr 48px 1fr; gap: 10px; }
+    .swap-btn { width: 48px; height: 44px; }
+
+    input, select { font-size: 0.93rem; padding: 11px 13px; margin-bottom: 14px; }
+    label { font-size: 0.75rem; margin-bottom: 5px; }
+    .btn { padding: 13px; font-size: 0.92rem; }
+
+    .calc-display { padding: 14px 18px; margin-bottom: 10px; }
+    .calc-num { font-size: 2rem; }
+    .calc-grid { gap: 7px; }
+    .calc-key { padding: 17px 8px; height: auto; min-height: 0; font-size: 1.1rem; border-radius: 8px; }
+    .calc-key svg { width: 20px; height: 20px; }
+
+    .result-value { font-size: 1.7rem; }
+    .result-sub { font-size: 0.78rem; line-height: 1.9; }
+    .info-box { font-size: 0.76rem; line-height: 1.7; }
+    .rates-grid { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 7px; }
+    .section-label { font-size: 0.7rem; margin-top: 2px; margin-bottom: 10px; }
+    .bracket-table { font-size: 0.72rem; }
+    .bracket-table td, .bracket-table th { padding: 5px 8px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <header>
+    <h1>万能計算機</h1>
+    <p>// XM Trading · 海外FX税金 · 通貨換算 · ローン · 複利</p>
+  </header>
+
+  <div class="tabs">
+    <!-- 基本 -->
+    <button class="tab-btn active" onclick="switchTab('basic',this)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:3px;display:block;margin-left:auto;margin-right:auto"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="8" y="1" width="5" height="5" rx="1"/><rect x="1" y="8" width="5" height="5" rx="1"/><rect x="8" y="8" width="5" height="5" rx="1"/></svg>
+      基本
+    </button>
+    <!-- %計算 -->
+    <button class="tab-btn" onclick="switchTab('percent',this)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:3px;display:block;margin-left:auto;margin-right:auto"><circle cx="3.5" cy="3.5" r="2"/><circle cx="10.5" cy="10.5" r="2"/><line x1="11" y1="3" x2="3" y2="11"/></svg>
+      %計算
+    </button>
+    <!-- 通貨換算 -->
+    <button class="tab-btn" onclick="switchTab('currency',this)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:3px;display:block;margin-left:auto;margin-right:auto"><circle cx="7" cy="7" r="6"/><path d="M7 1c-2 2-2 8 0 12M7 1c2 2 2 8 0 12"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
+      通貨換算
+    </button>
+    <!-- XM税金 -->
+    <button class="tab-btn xm-tab" onclick="switchTab('fx',this)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:3px;display:block;margin-left:auto;margin-right:auto"><rect x="1" y="2" width="12" height="10" rx="1.5"/><line x1="1" y1="5" x2="13" y2="5"/><line x1="4" y1="8" x2="6" y2="8"/><line x1="4" y1="10" x2="8" y2="10"/></svg>
+      XM税金
+    </button>
+    <!-- ローン -->
+    <button class="tab-btn" onclick="switchTab('loan',this)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" style="margin-bottom:3px;display:block;margin-left:auto;margin-right:auto"><path d="M1 10 L7 2 L13 10 Z"/><line x1="5" y1="10" x2="5" y2="13"/><line x1="9" y1="10" x2="9" y2="13"/><line x1="3" y1="13" x2="11" y2="13"/></svg>
+      ローン
+    </button>
+    <!-- 複利 -->
+    <button class="tab-btn" onclick="switchTab('compound',this)">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:3px;display:block;margin-left:auto;margin-right:auto"><polyline points="1,11 4,7 7,8 10,4 13,1"/></svg>
+      複利
+    </button>
+  </div>
+
+  <!-- ===== BASIC ===== -->
+  <div id="panel-basic" class="panel active">
+    <div class="card">
+      <div class="card-title">Standard Calculator</div>
+      <div class="calc-display">
+        <div class="calc-expr" id="calc-expr"></div>
+        <div class="calc-num" id="calc-num">0</div>
+      </div>
+      <div class="calc-grid">
+        <button class="calc-key clear" onclick="calcAC()">AC</button>
+        <!-- +/− -->
+        <button class="calc-key op" onclick="calcToggleSign()">
+          <svg width="22" height="16" viewBox="0 0 22 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <line x1="2" y1="4" x2="10" y2="4"/><line x1="6" y1="0.5" x2="6" y2="7.5"/>
+            <line x1="12" y1="11" x2="20" y2="11"/>
+          </svg>
+        </button>
+        <!-- % -->
+        <button class="calc-key op" onclick="calcPercent()">%</button>
+        <!-- ÷ -->
+        <button class="calc-key op" onclick="calcOp('/')">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <line x1="3" y1="11" x2="19" y2="11"/>
+            <circle cx="11" cy="5" r="1.5" fill="currentColor" stroke="none"/>
+            <circle cx="11" cy="17" r="1.5" fill="currentColor" stroke="none"/>
+          </svg>
+        </button>
+        <button class="calc-key" onclick="calcNum('7')">7</button>
+        <button class="calc-key" onclick="calcNum('8')">8</button>
+        <button class="calc-key" onclick="calcNum('9')">9</button>
+        <!-- × -->
+        <button class="calc-key op" onclick="calcOp('*')">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <line x1="3" y1="3" x2="17" y2="17"/>
+            <line x1="17" y1="3" x2="3" y2="17"/>
+          </svg>
+        </button>
+        <button class="calc-key" onclick="calcNum('4')">4</button>
+        <button class="calc-key" onclick="calcNum('5')">5</button>
+        <button class="calc-key" onclick="calcNum('6')">6</button>
+        <!-- − -->
+        <button class="calc-key op" onclick="calcOp('-')">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <line x1="3" y1="10" x2="17" y2="10"/>
+          </svg>
+        </button>
+        <button class="calc-key" onclick="calcNum('1')">1</button>
+        <button class="calc-key" onclick="calcNum('2')">2</button>
+        <button class="calc-key" onclick="calcNum('3')">3</button>
+        <!-- + -->
+        <button class="calc-key op" onclick="calcOp('+')">
+          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+            <line x1="10" y1="3" x2="10" y2="17"/>
+            <line x1="3" y1="10" x2="17" y2="10"/>
+          </svg>
+        </button>
+        <button class="calc-key span2" onclick="calcNum('0')">0</button>
+        <button class="calc-key" onclick="calcDot()">.</button>
+        <!-- = -->
+        <button class="calc-key eq" onclick="calcEquals()">=</button>
+      </div>
+      <ul class="history-list" id="calc-history"></ul>
+    </div>
+  </div>
+
+  <!-- ===== PERCENT ===== -->
+  <div id="panel-percent" class="panel">
+    <div class="card">
+      <div class="card-title">パーセント計算</div>
+      <label>計算タイプ</label>
+      <select id="pct-type" onchange="renderPctInputs()">
+        <option value="of">X の Y% はいくら？</option>
+        <option value="what">X は Y の何%？</option>
+        <option value="change">X から Y への変化率</option>
+        <option value="reverse">税込価格から税抜を逆算</option>
+        <option value="discount">割引後の価格</option>
+      </select>
+      <div id="pct-inputs"></div>
+      <button class="btn btn-primary" onclick="calcPercents()">計算する</button>
+      <div id="pct-result" class="result-box" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ===== CURRENCY ===== -->
+  <div id="panel-currency" class="panel">
+    <div class="card">
+      <div class="card-title">通貨換算（USDT対応）</div>
+      <div id="rate-status" class="rate-badge">
+        <span class="dot" id="rate-dot"></span>
+        <span id="rate-status-text">レート未取得</span>
+      </div>
+      <div class="currency-big">
+        <div>
+          <label>金額</label>
+          <input type="number" id="cv-amount" placeholder="100" oninput="convertCurrency()">
+        </div>
+        <button class="swap-btn" onclick="swapCurrencies()">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3,6 7,2 11,6"/><line x1="7" y1="2" x2="7" y2="12"/>
+            <polyline points="7,12 11,16 15,12"/><line x1="11" y1="16" x2="11" y2="6"/>
+          </svg>
+        </button>
+        <div>
+          <label>換算後</label>
+          <input type="number" id="cv-result" readonly style="background:var(--bg);cursor:default;">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label>変換元</label>
+          <select id="cv-from" onchange="convertCurrency()">
+            <option value="JPY">🇯🇵 JPY 円</option>
+            <option value="USD" selected>🇺🇸 USD ドル</option>
+            <option value="USDT">🔵 USDT テザー</option>
+            <option value="EUR">🇪🇺 EUR ユーロ</option>
+            <option value="GBP">🇬🇧 GBP ポンド</option>
+            <option value="AUD">🇦🇺 AUD 豪ドル</option>
+            <option value="CHF">🇨🇭 CHF スイスF</option>
+            <option value="CAD">🇨🇦 CAD カナダ$</option>
+            <option value="NZD">🇳🇿 NZD NZ$</option>
+            <option value="SGD">🇸🇬 SGD SG$</option>
+            <option value="HKD">🇭🇰 HKD 香港$</option>
+            <option value="CNY">🇨🇳 CNY 人民元</option>
+            <option value="KRW">🇰🇷 KRW ウォン</option>
+          </select>
+        </div>
+        <div>
+          <label>変換先</label>
+          <select id="cv-to" onchange="convertCurrency()">
+            <option value="JPY" selected>🇯🇵 JPY 円</option>
+            <option value="USD">🇺🇸 USD ドル</option>
+            <option value="USDT">🔵 USDT テザー</option>
+            <option value="EUR">🇪🇺 EUR ユーロ</option>
+            <option value="GBP">🇬🇧 GBP ポンド</option>
+            <option value="AUD">🇦🇺 AUD 豪ドル</option>
+            <option value="CHF">🇨🇭 CHF スイスF</option>
+            <option value="CAD">🇨🇦 CAD カナダ$</option>
+            <option value="NZD">🇳🇿 NZD NZ$</option>
+            <option value="SGD">🇸🇬 SGD SG$</option>
+            <option value="HKD">🇭🇰 HKD 香港$</option>
+            <option value="CNY">🇨🇳 CNY 人民元</option>
+            <option value="KRW">🇰🇷 KRW ウォン</option>
+          </select>
+        </div>
+      </div>
+      <button class="btn btn-primary" id="fetch-rate-btn" onclick="fetchRates()">
+        <span class="ic" style="margin-right:7px;vertical-align:middle"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 7 a5 5 0 0 1 10 0"/><path d="M4 9 a3 3 0 0 1 6 0"/><line x1="7" y1="11" x2="7" y2="13"/><circle cx="7" cy="11" r="1" fill="currentColor" stroke="none"/></svg></span>
+        レートを取得する
+      </button>
+      <div id="rates-grid" class="rates-grid" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ===== XM FX TAX ===== -->
+  <div id="panel-fx" class="panel">
+
+    <!-- ステップインジケーター -->
+    <div class="step-indicator">
+      <div class="step-dot active" id="sdot-1">1</div>
+      <div class="step-line" id="sline-1"></div>
+      <div class="step-dot" id="sdot-2">2</div>
+      <div class="step-line" id="sline-2"></div>
+      <div class="step-dot" id="sdot-3">3</div>
+    </div>
+
+    <!-- STEP 1: MT4/MT5の数字 -->
+    <div class="xm-step" id="step-1">
+      <div class="card xm-card">
+        <div class="step-header">
+          <div class="step-num xm-bg">1</div>
+          <div>
+            <div class="step-title">MT4 / MT5 の数字を入力</div>
+            <div class="step-sub">履歴レポートから2つだけ転記すればOK</div>
+          </div>
+        </div>
+
+        <!-- MT4ガイド -->
+        <div class="guide-box">
+          <div class="guide-title">MT4/MT5 履歴タブの見方</div>
+          <div class="guide-row">
+            <div class="guide-tag xm">Closed Trade P/L</div>
+            <div class="guide-desc">確定した売買損益の合計。プラスが利益、マイナスが損失。</div>
+          </div>
+          <div class="guide-row">
+            <div class="guide-tag accent">Swap</div>
+            <div class="guide-desc">スワップポイントの合計。プラス・マイナス両方あり得る。</div>
+          </div>
+          <div class="guide-note">ボーナスで得た利益は含めない（入金ボーナス自体は非課税）</div>
+        </div>
+
+        <label>
+          Closed Trade P/L（確定損益）
+          <span class="label-hint">— マイナスの場合は「−」をつけて入力</span>
+        </label>
+        <div class="input-with-unit">
+          <input type="number" id="fx-closed-pl" placeholder="例: 1200000">
+          <span class="unit">円</span>
+        </div>
+
+        <label>
+          Swap（スワップ損益）
+          <span class="label-hint">— ない場合は 0</span>
+        </label>
+        <div class="input-with-unit">
+          <input type="number" id="fx-swap" placeholder="例: 80000">
+          <span class="unit">円</span>
+        </div>
+
+        <div class="xm-summary-mini" id="step1-summary" style="display:none">
+          XM年間損益: <span id="step1-total" class="positive">—</span>
+        </div>
+
+        <button class="btn btn-xm" onclick="goStep2()">次へ — 収入・控除を入力</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: 収入・控除 -->
+    <div class="xm-step" id="step-2" style="display:none">
+      <div class="card xm-card">
+        <div class="step-header">
+          <div class="step-num xm-bg">2</div>
+          <div>
+            <div class="step-title">あなたの状況を教えてください</div>
+            <div class="step-sub">税率に影響する情報を入力します</div>
+          </div>
+        </div>
+
+        <label>職業・雇用形態</label>
+        <select id="fx-job-type" onchange="onJobTypeChange()">
+          <option value="employee">会社員・公務員（給与所得あり）</option>
+          <option value="self">専業トレーダー・自営業・無職</option>
+        </select>
+
+        <div id="salary-section">
+          <label>
+            年収（給与収入）
+            <span class="label-hint">— 源泉徴収票の「支払金額」</span>
+          </label>
+          <div class="input-with-unit">
+            <input type="number" id="fx-salary" placeholder="例: 5000000">
+            <span class="unit">円</span>
+          </div>
+        </div>
+
+        <!-- アコーディオン：詳細控除 -->
+        <button class="accordion-btn" onclick="toggleAccordion()" id="acc-btn">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>
+          詳細な控除を入力する（任意）
+        </button>
+        <div class="accordion-body" id="acc-body">
+          <label>
+            社会保険料
+            <span class="label-hint">— 源泉徴収票の「社会保険料等の金額」</span>
+          </label>
+          <div class="input-with-unit">
+            <input type="number" id="fx-social" placeholder="例: 700000">
+            <span class="unit">円</span>
+          </div>
+
+          <label>
+            必要経費
+            <span class="label-hint">— 通信費・セミナー代・書籍代など</span>
+          </label>
+          <div class="input-with-unit">
+            <input type="number" id="fx-expenses" placeholder="例: 50000">
+            <span class="unit">円</span>
+          </div>
+
+          <label>
+            その他控除
+            <span class="label-hint">— 生命保険・iDeCo・医療費控除の合計</span>
+          </label>
+          <div class="input-with-unit">
+            <input type="number" id="fx-deductions" placeholder="例: 100000">
+            <span class="unit">円</span>
+          </div>
+
+          <label>
+            XM以外の雑所得
+            <span class="label-hint">— 副業・暗号資産など</span>
+          </label>
+          <div class="input-with-unit">
+            <input type="number" id="fx-other-misc" placeholder="例: 0">
+            <span class="unit">円</span>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="btn btn-back" onclick="goStep(1)">← 戻る</button>
+          <button class="btn btn-xm" style="flex:3" onclick="goStep3()">税金を計算する</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3: 結果 -->
+    <div class="xm-step" id="step-3" style="display:none">
+      <div class="card xm-card">
+        <div class="step-header">
+          <div class="step-num" style="background:var(--accent2);color:#0a0a0f">3</div>
+          <div>
+            <div class="step-title">計算結果</div>
+            <div class="step-sub" id="result-year"></div>
+          </div>
+        </div>
+
+        <div id="fx-result-visual"></div>
+
+        <button class="btn btn-back" onclick="goStep(2)" style="margin-top:14px">← 入力を修正する</button>
+      </div>
+
+      <!-- 確定申告チェック -->
+      <div class="card xm-card" id="filing-check-card">
+        <div class="card-title xm">
+          <span class="ic" style="vertical-align:middle;margin-right:6px"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="0.5" y="0.5" width="11" height="11" rx="2"/><polyline points="2.5,6 5,8.5 9.5,3.5"/></svg></span>
+          確定申告 必要性
+        </div>
+        <div id="filing-check-result"></div>
+      </div>
+    </div>
+
+    <!-- pips換算（常時表示） -->
+    <div class="card">
+      <div class="card-title">
+        <span class="ic" style="vertical-align:middle;margin-right:6px"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="0" y1="6" x2="12" y2="6"/><line x1="6" y1="0" x2="6" y2="12"/><polyline points="2,2 2,4 4,4"/></svg></span>
+        pips → 円換算
+      </div>
+      <div class="row3">
+        <div>
+          <label>ペアタイプ</label>
+          <select id="pip-pair">
+            <option value="jpy">円建て（USD/JPY等）</option>
+            <option value="usd">ドル建て（EUR/USD等）</option>
+          </select>
+        </div>
+        <div>
+          <label>pips数</label>
+          <input type="number" id="pip-pips" placeholder="30">
+        </div>
+        <div>
+          <label>ロット（通貨数）</label>
+          <input type="number" id="pip-lot" placeholder="10000">
+        </div>
+      </div>
+      <label>現在の USD/JPY レート（ドル建てペアのみ）</label>
+      <input type="number" id="pip-rate" placeholder="150.00" step="0.01">
+      <button class="btn btn-primary" onclick="calcPips()">円換算する</button>
+      <div id="pip-result" class="result-box" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ===== LOAN ===== -->
+  <div id="panel-loan" class="panel">
+    <div class="card">
+      <div class="card-title">ローン・金利計算</div>
+      <div class="row">
+        <div><label>借入金額 (円)</label><input type="number" id="loan-principal" placeholder="3000000"></div>
+        <div><label>年利 (%)</label><input type="number" id="loan-rate" placeholder="3.5" step="0.01"></div>
+      </div>
+      <div class="row">
+        <div><label>返済期間（年）</label><input type="number" id="loan-years" placeholder="5"></div>
+        <div>
+          <label>返済方式</label>
+          <select id="loan-method"><option value="equal-payment">元利均等</option><option value="equal-principal">元金均等</option></select>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="calcLoan()">計算する</button>
+      <div id="loan-result" class="result-box" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ===== COMPOUND ===== -->
+  <div id="panel-compound" class="panel">
+    <div class="card">
+      <div class="card-title">複利計算</div>
+      <div class="row">
+        <div><label>元本 (円)</label><input type="number" id="cp-principal" placeholder="1000000"></div>
+        <div><label>年利 (%)</label><input type="number" id="cp-rate" placeholder="5" step="0.1"></div>
+      </div>
+      <div class="row">
+        <div><label>運用期間（年）</label><input type="number" id="cp-years" placeholder="20"></div>
+        <div>
+          <label>複利タイミング</label>
+          <select id="cp-freq"><option value="1">年1回</option><option value="12">月1回</option><option value="365">日次</option></select>
+        </div>
+      </div>
+      <label>毎月積立 (円・任意)</label>
+      <input type="number" id="cp-monthly" placeholder="0">
+      <button class="btn btn-primary" onclick="calcCompound()">計算する</button>
+      <div id="cp-result" class="result-box" style="display:none"></div>
+    </div>
+  </div>
+
+</div><!-- /.wrapper -->
+
+<!-- モバイル専用ボトムナビ -->
+<nav class="bottom-nav">
+  <button class="tab-btn active" onclick="switchTab('basic',this)">
+    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="8" y="1" width="5" height="5" rx="1"/><rect x="1" y="8" width="5" height="5" rx="1"/><rect x="8" y="8" width="5" height="5" rx="1"/></svg>
+    基本
+  </button>
+  <button class="tab-btn" onclick="switchTab('percent',this)">
+    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="3.5" cy="3.5" r="2"/><circle cx="10.5" cy="10.5" r="2"/><line x1="11" y1="3" x2="3" y2="11"/></svg>
+    %計算
+  </button>
+  <button class="tab-btn" onclick="switchTab('currency',this)">
+    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="7" cy="7" r="6"/><path d="M7 1c-2 2-2 8 0 12M7 1c2 2 2 8 0 12"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
+    通貨
+  </button>
+  <button class="tab-btn xm-tab" onclick="switchTab('fx',this)">
+    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="1" y="2" width="12" height="10" rx="1.5"/><line x1="1" y1="5" x2="13" y2="5"/><line x1="4" y1="8" x2="6" y2="8"/><line x1="4" y1="10" x2="8" y2="10"/></svg>
+    XM税金
+  </button>
+  <button class="tab-btn" onclick="switchTab('loan',this)">
+    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M1 10 L7 2 L13 10 Z"/><line x1="5" y1="10" x2="5" y2="13"/><line x1="9" y1="10" x2="9" y2="13"/><line x1="3" y1="13" x2="11" y2="13"/></svg>
+    ローン
+  </button>
+  <button class="tab-btn" onclick="switchTab('compound',this)">
+    <svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="1,11 4,7 7,8 10,4 13,1"/></svg>
+    複利
+  </button>
+</nav>
+
+<script>
+// ====== UTILS ======
+function fmt(n, d) {
+  if (typeof n !== 'number' || isNaN(n)) return String(n);
+  if (d !== undefined) return n.toLocaleString('ja-JP', { minimumFractionDigits: d, maximumFractionDigits: d });
+  return n.toLocaleString('ja-JP');
+}
+
+// タップフィードバック（バイブ）
+function vib(ms) {
+  if (navigator.vibrate) navigator.vibrate(ms);
+}
+
+// ====== TABS ======
+function switchTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  // 上部タブ・ボトムナビ両方のactiveをリセット
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  // 同じタブIDのボタンをすべてactiveに（上部 + ボトムナビ）
+  const idx = [...btn.parentElement.children].indexOf(btn);
+  document.querySelectorAll('.tabs .tab-btn, .bottom-nav .tab-btn').forEach((b, i) => {
+    if (i % 6 === idx % 6) b.classList.add('active');
+  });
+}
+
+// ====== BASIC CALC ======
+let cs = { display: '0', op: null, operand: null, fresh: true, expr: '' };
+function upd() { document.getElementById('calc-num').textContent = cs.display; document.getElementById('calc-expr').textContent = cs.expr; }
+function calcNum(n) { vib(8); if (cs.fresh) { cs.display = n; cs.fresh = false; } else { cs.display = cs.display === '0' ? n : cs.display + n; } if (cs.display.length > 14) cs.display = cs.display.slice(0,14); upd(); }
+function calcDot() { vib(8); if (cs.fresh) { cs.display = '0.'; cs.fresh = false; } else if (!cs.display.includes('.')) cs.display += '.'; upd(); }
+function calcOp(op) { vib(12); if (cs.op && !cs.fresh) calcEquals(true); cs.operand = parseFloat(cs.display); cs.op = op; cs.fresh = true; const s = {'*':'×','/':'÷','+':'+','-':'−'}[op]; cs.expr = fmt(cs.operand) + ' ' + s; upd(); }
+function calcEquals(noH) { if (!noH) vib(20); if (!cs.op) return; const a = cs.operand, b = parseFloat(cs.display), s = {'*':'×','/':'÷','+':'+','-':'−'}[cs.op]; let r; switch(cs.op) { case '+': r=a+b; break; case '-': r=a-b; break; case '*': r=a*b; break; case '/': r=b===0?'Error':a/b; break; } const expr = fmt(a)+' '+s+' '+fmt(b)+' = '+(typeof r==='number'?fmt(parseFloat(r.toFixed(10))):r); if (!noH) addHist(expr); cs.display = typeof r==='number'?String(parseFloat(r.toFixed(10))):r; cs.op=null; cs.operand=null; cs.fresh=true; cs.expr=expr; upd(); }
+function calcAC() { vib(15); cs = {display:'0',op:null,operand:null,fresh:true,expr:''}; upd(); }
+function calcToggleSign() { vib(8); cs.display = String(parseFloat(cs.display)*-1); upd(); }
+function calcPercent() { vib(8); cs.display = String(parseFloat(cs.display)/100); upd(); }
+function addHist(expr) { const ul = document.getElementById('calc-history'); const li = document.createElement('li'); li.textContent = expr; ul.prepend(li); if (ul.children.length > 10) ul.lastChild.remove(); }
+
+// ====== PERCENT ======
+function renderPctInputs() {
+  const t = document.getElementById('pct-type').value;
+  const m = {
+    of: `<label>元の数値 (X)</label><input type="number" id="p1" placeholder="10000"><label>パーセント (Y%)</label><input type="number" id="p2" placeholder="8">`,
+    what: `<label>対象 (X)</label><input type="number" id="p1" placeholder="800"><label>基準 (Y)</label><input type="number" id="p2" placeholder="10000">`,
+    change: `<label>変化前 (X)</label><input type="number" id="p1" placeholder="10000"><label>変化後 (Y)</label><input type="number" id="p2" placeholder="12000">`,
+    reverse: `<label>税込価格 (円)</label><input type="number" id="p1" placeholder="10800"><label>消費税率 (%)</label><input type="number" id="p2" placeholder="10">`,
+    discount: `<label>元の価格 (円)</label><input type="number" id="p1" placeholder="10000"><label>割引率 (%)</label><input type="number" id="p2" placeholder="30">`,
+  };
+  document.getElementById('pct-inputs').innerHTML = m[t];
+  document.getElementById('pct-result').style.display = 'none';
+}
+renderPctInputs();
+
+function calcPercents() {
+  const t = document.getElementById('pct-type').value;
+  const p1 = parseFloat(document.getElementById('p1').value);
+  const p2 = parseFloat(document.getElementById('p2').value);
+  if (isNaN(p1)||isNaN(p2)) { alert('数値を入力してください'); return; }
+  let display, sub;
+  switch(t) {
+    case 'of': { const r=p1*p2/100; display=fmt(r); sub=`${fmt(p1)} の ${p2}% = <span>${fmt(r)}</span>`; break; }
+    case 'what': { const r=(p1/p2)*100; display=r.toFixed(2)+'%'; sub=`<span>${display}</span>`; break; }
+    case 'change': { const r=((p2-p1)/p1)*100; const sg=r>=0?'+':''; display=sg+r.toFixed(2)+'%'; sub=`変化率: <span class="${r<0?'highlight':'positive'}">${display}</span><br>差額: <span>${sg}${fmt(p2-p1)}</span>`; break; }
+    case 'reverse': { const r=p1/(1+p2/100); display=fmt(Math.round(r))+'円'; sub=`税抜: <span>${fmt(Math.round(r))} 円</span><br>消費税: <span>${fmt(Math.round(p1-r))} 円</span>`; break; }
+    case 'discount': { const r=p1*(1-p2/100); display=fmt(Math.round(r))+'円'; sub=`割引後: <span>${fmt(Math.round(r))} 円</span><br>値引き: <span class="highlight">−${fmt(Math.round(p1-r))} 円</span>`; break; }
+  }
+  const box = document.getElementById('pct-result');
+  box.style.display = 'block';
+  box.innerHTML = `<div class="result-label">計算結果</div><div class="result-value">${display}</div><div class="result-sub">${sub}</div>`;
+}
+
+// ====== CURRENCY ======
+let ratesJPY = {};
+const SVG_BTN_RATE = '<span class="ic" style="margin-right:7px;vertical-align:middle"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M2 7 a5 5 0 0 1 10 0"/><path d="M4 9 a3 3 0 0 1 6 0"/><line x1="7" y1="11" x2="7" y2="13"/><circle cx="7" cy="11" r="1" fill="currentColor" stroke="none"/></svg></span>';
+
+function fetchRates() {
+  const btn = document.getElementById('fetch-rate-btn');
+  const statusEl = document.getElementById('rate-status-text');
+  btn.innerHTML = '<span class="spinner"></span> 取得中...';
+  btn.disabled = true;
+  statusEl.textContent = '取得中...';
+
+  fetch('https://open.er-api.com/v6/latest/JPY')
+    .then(r => r.json())
+    .then(data => {
+      btn.disabled = false;
+      if (data.result === 'success') {
+        const currencies = ['USD','EUR','GBP','AUD','CHF','CAD','NZD','SGD','HKD','CNY','KRW'];
+        currencies.forEach(c => { if (data.rates[c]) ratesJPY[c] = data.rates[c]; });
+        ratesJPY['USDT'] = data.rates['USD']; // USDTはUSDペッグ
+        const ts = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
+        btn.innerHTML = SVG_BTN_RATE + 'レートを再取得する';
+        statusEl.textContent = '取得済: ' + ts;
+        document.getElementById('rate-dot').classList.add('live');
+        renderRatesGrid();
+        convertCurrency();
+      } else {
+        btn.innerHTML = SVG_BTN_RATE + 'レートを取得する';
+        statusEl.textContent = 'エラー: レート取得失敗';
+      }
+    })
+    .catch(e => {
+      btn.disabled = false;
+      btn.innerHTML = SVG_BTN_RATE + 'レートを取得する';
+      statusEl.textContent = 'エラー: ' + e.message;
+    });
+}
+
+function renderRatesGrid() {
+  const grid = document.getElementById('rates-grid');
+  const pairs = [['USD','米ドル'],['USDT','テザー'],['EUR','ユーロ'],['GBP','ポンド'],['AUD','豪ドル'],['CHF','スイスF'],['CAD','カナダ$'],['SGD','SG$'],['HKD','香港$'],['CNY','人民元'],['KRW','ウォン']];
+  grid.style.display = 'grid';
+  grid.innerHTML = pairs.map(([code]) => {
+    const r = ratesJPY[code] ? 1/ratesJPY[code] : null;
+    return `<div class="rate-card" onclick="quickSelect('JPY','${code}')">
+      <div class="rc-pair">JPY→${code}</div>
+      <div class="rc-val">${r ? r.toFixed(code==='KRW'?4:2) : '—'}</div>
+    </div>`;
+  }).join('');
+}
+
+function quickSelect(from, to) {
+  document.getElementById('cv-from').value = from;
+  document.getElementById('cv-to').value = to;
+  convertCurrency();
+}
+
+function swapCurrencies() {
+  const f = document.getElementById('cv-from'), t = document.getElementById('cv-to');
+  const res = document.getElementById('cv-result').value;
+  [f.value, t.value] = [t.value, f.value];
+  if (res) document.getElementById('cv-amount').value = res;
+  convertCurrency();
+}
+
+function convertCurrency() {
+  if (Object.keys(ratesJPY).length === 0) return;
+  const amount = parseFloat(document.getElementById('cv-amount').value);
+  if (isNaN(amount)) { document.getElementById('cv-result').value = ''; return; }
+  const from = document.getElementById('cv-from').value;
+  const to = document.getElementById('cv-to').value;
+  const toJPY = (v, c) => c === 'JPY' ? v : v / ratesJPY[c];
+  const fromJPY = (v, c) => c === 'JPY' ? v : v * ratesJPY[c];
+  const result = fromJPY(toJPY(amount, from), to);
+  const decimals = ['JPY','KRW'].includes(to) ? 0 : 4;
+  document.getElementById('cv-result').value = result.toFixed(decimals);
+}
+
+// ====== XM STEP CONTROL ======
+function goStep(n) {
+  [1,2,3].forEach(i => {
+    document.getElementById('step-'+i).style.display = i === n ? 'block' : 'none';
+    const dot = document.getElementById('sdot-'+i);
+    dot.classList.remove('active','done');
+    if (i < n) dot.classList.add('done');
+    else if (i === n) dot.classList.add('active');
+    if (i < 3) {
+      const line = document.getElementById('sline-'+i);
+      line.classList.toggle('done', i < n);
+    }
+  });
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function goStep2() {
+  const pl = parseFloat(document.getElementById('fx-closed-pl').value) || 0;
+  const sw = parseFloat(document.getElementById('fx-swap').value) || 0;
+  const total = pl + sw;
+  const mini = document.getElementById('step1-summary');
+  document.getElementById('step1-total').textContent = fmt(total) + ' 円';
+  document.getElementById('step1-total').className = total >= 0 ? 'positive' : 'highlight';
+  mini.style.display = 'block';
+  goStep(2);
+}
+
+function onJobTypeChange() {
+  const isSelf = document.getElementById('fx-job-type').value === 'self';
+  document.getElementById('salary-section').style.display = isSelf ? 'none' : 'block';
+}
+
+function toggleAccordion() {
+  const btn = document.getElementById('acc-btn');
+  const body = document.getElementById('acc-body');
+  const isOpen = body.classList.contains('open');
+  btn.classList.toggle('open', !isOpen);
+  body.classList.toggle('open', !isOpen);
+  // アイコン切り替え（+→−）
+  btn.querySelector('svg').innerHTML = isOpen
+    ? '<line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/>'
+    : '<line x1="1" y1="6" x2="11" y2="6"/>';
+}
+
+function goStep3() {
+  const taxYear = new Date().getFullYear() - 1;
+  document.getElementById('result-year').textContent = taxYear + '年分の概算';
+  calcXMTax();
+  goStep(3);
+}
+
+// ====== XM TAX (総合課税・累進課税) ======
+const TAX_BRACKETS = [
+  { limit: 1950000,   rate: 0.05,  deduct: 0 },
+  { limit: 3300000,   rate: 0.10,  deduct: 97500 },
+  { limit: 6950000,   rate: 0.20,  deduct: 427500 },
+  { limit: 9000000,   rate: 0.23,  deduct: 636000 },
+  { limit: 18000000,  rate: 0.33,  deduct: 1536000 },
+  { limit: 40000000,  rate: 0.40,  deduct: 2796000 },
+  { limit: Infinity,  rate: 0.45,  deduct: 4796000 },
+];
+
+function calcSalaryDeduction(salary) {
+  if (salary <= 1625000)  return 550000;
+  if (salary <= 1800000)  return Math.floor(salary * 0.4) - 100000;
+  if (salary <= 3600000)  return Math.floor(salary * 0.3) + 80000;
+  if (salary <= 6600000)  return Math.floor(salary * 0.2) + 440000;
+  if (salary <= 8500000)  return Math.floor(salary * 0.1) + 1100000;
+  return 1950000;
+}
+
+function incomeTaxFromBracket(taxableIncome) {
+  for (const b of TAX_BRACKETS) {
+    if (taxableIncome <= b.limit) {
+      return { tax: Math.max(0, Math.floor(taxableIncome * b.rate - b.deduct)), rate: b.rate };
+    }
+  }
+}
+
+function activeBracket(taxableIncome) {
+  for (let i = 0; i < TAX_BRACKETS.length; i++) {
+    if (taxableIncome <= TAX_BRACKETS[i].limit) return i;
+  }
+  return TAX_BRACKETS.length - 1;
+}
+
+function calcXMTax() {
+  const closedPL  = parseFloat(document.getElementById('fx-closed-pl').value) || 0;
+  const swap      = parseFloat(document.getElementById('fx-swap').value) || 0;
+  const expenses  = parseFloat(document.getElementById('fx-expenses').value) || 0;
+  const otherMisc = parseFloat(document.getElementById('fx-other-misc').value) || 0;
+  const jobType   = document.getElementById('fx-job-type').value;
+  const salary    = jobType === 'employee' ? (parseFloat(document.getElementById('fx-salary').value) || 0) : 0;
+  const social    = parseFloat(document.getElementById('fx-social').value) || 0;
+  const otherDed  = parseFloat(document.getElementById('fx-deductions').value) || 0;
+
+  const xmMiscIncome  = closedPL + swap - expenses;
+  const totalMisc     = xmMiscIncome + otherMisc;
+  const salaryDeduction = salary > 0 ? calcSalaryDeduction(salary) : 0;
+  const salaryIncome  = Math.max(0, salary - salaryDeduction);
+  const totalIncome   = salaryIncome + totalMisc;
+  const basicDeduction = 480000;
+  const totalDeductions = basicDeduction + social + otherDed;
+  const taxableIncome = Math.max(0, totalIncome - totalDeductions);
+  const taxableIncome1000 = Math.floor(taxableIncome / 1000) * 1000;
+  const taxableWithoutXM = Math.max(0, salaryIncome + otherMisc - totalDeductions);
+  const taxableWithoutXM1000 = Math.floor(taxableWithoutXM / 1000) * 1000;
+
+  const { tax: incomeTaxTotal, rate: appliedRate } = incomeTaxFromBracket(taxableIncome1000);
+  const { tax: incomeTaxWithout } = incomeTaxFromBracket(taxableWithoutXM1000);
+  const fukko = Math.floor(incomeTaxTotal * 0.021);
+  const fukkoWithout = Math.floor(incomeTaxWithout * 0.021);
+  const residentTax = Math.floor(taxableIncome1000 * 0.10);
+  const residentTaxWithout = Math.floor(taxableWithoutXM1000 * 0.10);
+
+  const addIncomeTax = (incomeTaxTotal + fukko) - (incomeTaxWithout + fukkoWithout);
+  const addResidentTax = residentTax - residentTaxWithout;
+  const addTotal = Math.max(0, addIncomeTax + addResidentTax);
+  const takeHome = xmMiscIncome - addTotal;
+  const effectiveRate = xmMiscIncome > 0 ? (addTotal / xmMiscIncome * 100).toFixed(1) : 0;
+
+  const el = document.getElementById('fx-result-visual');
+
+  if (xmMiscIncome <= 0) {
+    el.innerHTML = `
+      <div class="result-visual-main">
+        <div class="rv-big-label">XM 年間損益</div>
+        <div class="rv-big-val highlight">${fmt(xmMiscIncome)} 円</div>
+        <div class="rv-big-sub">損失のため追加課税なし</div>
+      </div>
+      <div class="filing-banner noneed">
+        <div class="filing-banner-title" style="color:var(--accent2)">納税不要</div>
+        損失は翌年への繰越控除ができません（海外FXの制限）。<br>
+        Closed P/L: ${fmt(closedPL)} 円　Swap: ${fmt(swap)} 円　経費: −${fmt(expenses)} 円
+      </div>`;
+    renderFilingCheck(xmMiscIncome, jobType);
+    return;
+  }
+
+  // バーグラフの割合計算
+  const total = xmMiscIncome;
+  const taxPct = Math.min(100, (addTotal / total * 100)).toFixed(1);
+  const homePct = Math.max(0, 100 - taxPct).toFixed(1);
+
+  el.innerHTML = `
+    <div class="result-visual-main">
+      <div class="rv-big-label">追加納税額（概算）</div>
+      <div class="rv-big-val xm-color">${fmt(addTotal)} 円</div>
+      <div class="rv-big-sub">実効税率 ${effectiveRate}% （所得税率 ${(appliedRate*100).toFixed(0)}% が適用）</div>
+    </div>
+
+    <div class="breakdown-bar">
+      <div class="bar-track">
+        <div class="bar-seg" style="width:${homePct}%;background:var(--accent2)">${homePct}%</div>
+        <div class="bar-seg" style="width:${taxPct}%;background:var(--xm)">${taxPct}%</div>
+      </div>
+      <div class="bar-labels">
+        <div class="bar-label-item"><div class="bar-dot" style="background:var(--accent2)"></div>手取り ${fmt(Math.round(takeHome))} 円</div>
+        <div class="bar-label-item"><div class="bar-dot" style="background:var(--xm)"></div>税金 ${fmt(addTotal)} 円</div>
+      </div>
+    </div>
+
+    <div class="breakdown-grid">
+      <div class="bd-item">
+        <div class="bd-label">XM 年間損益</div>
+        <div class="bd-val positive">${fmt(xmMiscIncome)} 円</div>
+      </div>
+      <div class="bd-item">
+        <div class="bd-label">手取り利益</div>
+        <div class="bd-val positive">${fmt(Math.round(takeHome))} 円</div>
+      </div>
+      <div class="bd-item">
+        <div class="bd-label">所得税＋復興税</div>
+        <div class="bd-val xm-color">${fmt(addIncomeTax)} 円</div>
+      </div>
+      <div class="bd-item">
+        <div class="bd-label">住民税（10%）</div>
+        <div class="bd-val xm-color">${fmt(addResidentTax)} 円</div>
+      </div>
+    </div>
+
+    <div class="result-sub" style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+      課税所得: <span>${fmt(taxableIncome1000)} 円</span>　適用税率: <span class="xm-color">${(appliedRate*100).toFixed(0)}%</span><br>
+      ${salary > 0 ? `給与所得控除: <span>−${fmt(salaryDeduction)} 円</span>　` : ''}基礎控除: <span>−48万円</span>${social > 0 ? `　社保: <span>−${fmt(social)} 円</span>` : ''}
+    </div>`;
+
+  renderFilingCheck(xmMiscIncome, jobType);
+}
+
+function renderFilingCheck(xmIncome, jobType) {
+  const isEmployee = jobType === 'employee';
+  const threshold = isEmployee ? 200000 : 480000;
+  const needed = xmIncome >= threshold;
+  const card = document.getElementById('filing-check-card');
+  const el = document.getElementById('filing-check-result');
+  card.style.display = 'block';
+
+  el.innerHTML = `<div class="filing-banner ${needed ? 'need' : 'noneed'}">
+    <div class="filing-banner-title" style="color:${needed ? 'var(--xm)' : 'var(--accent2)'}">
+      ${needed ? '確定申告が必要です' : '確定申告は不要'}
+    </div>
+    ${isEmployee ? '会社員' : '専業トレーダー・自営業'}　XM利益: ${fmt(Math.round(xmIncome))} 円　（申告ライン: ${fmt(threshold)} 円）<br>
+    ${needed
+      ? '申告期間: 翌年<strong>2月16日〜3月15日</strong>。支払先「Tradexfin Limited」で申告。'
+      : `現時点では確定申告不要。ただし住民税の申告は別途必要な場合あり。`}
+  </div>`;
+}
+
+function calcPips() {
+  const type = document.getElementById('pip-pair').value;
+  const pips = parseFloat(document.getElementById('pip-pips').value) || 0;
+  const lot  = parseFloat(document.getElementById('pip-lot').value) || 10000;
+  const rate = parseFloat(document.getElementById('pip-rate').value) || 150;
+  const pipValue = type === 'jpy' ? 0.01 * lot : 0.0001 * lot * rate;
+  const total = pips * pipValue;
+  const box = document.getElementById('pip-result');
+  box.style.display = 'block';
+  box.innerHTML = `<div class="result-label">pips換算</div>
+    <div class="result-value">${fmt(Math.round(total))} 円</div>
+    <div class="result-sub">${pips} pips × ${fmt(lot)} 通貨<br>1pip = <span>${pipValue.toFixed(2)} 円</span></div>`;
+}
+
+// ====== LOAN ======
+function calcLoan() {
+  const P = parseFloat(document.getElementById('loan-principal').value);
+  const r = parseFloat(document.getElementById('loan-rate').value) / 100 / 12;
+  const y = parseInt(document.getElementById('loan-years').value);
+  const method = document.getElementById('loan-method').value;
+  if (!P || !y) { alert('借入金額と期間を入力してください'); return; }
+  const n = y * 12;
+  let monthly, totalPay, totalInterest;
+  if (method === 'equal-payment') {
+    monthly = r > 0 ? P * r * Math.pow(1+r,n) / (Math.pow(1+r,n)-1) : P/n;
+    totalPay = monthly * n; totalInterest = totalPay - P;
+  } else {
+    const pm = P / n; monthly = pm + P * r;
+    totalInterest = 0;
+    for (let i = 0; i < n; i++) totalInterest += (P - pm * i) * r;
+    totalPay = P + totalInterest;
+  }
+  const box = document.getElementById('loan-result');
+  box.style.display = 'block';
+  box.innerHTML = `<div class="result-label">${method==='equal-payment'?'毎月返済額':'初月返済額'}</div>
+    <div class="result-value">${fmt(Math.round(monthly))} 円</div>
+    <div class="result-sub">
+      総返済額: <span>${fmt(Math.round(totalPay))} 円</span><br>
+      総利息: <span class="highlight">${fmt(Math.round(totalInterest))} 円</span>
+    </div>`;
+}
+
+// ====== COMPOUND ======
+function calcCompound() {
+  const P = parseFloat(document.getElementById('cp-principal').value) || 0;
+  const rate = parseFloat(document.getElementById('cp-rate').value) / 100;
+  const years = parseInt(document.getElementById('cp-years').value) || 0;
+  const freq = parseInt(document.getElementById('cp-freq').value);
+  const monthly = parseFloat(document.getElementById('cp-monthly').value) || 0;
+  let total = P;
+  for (let m = 0; m < years * 12; m++) { total += monthly; total *= Math.pow(1 + rate / freq, freq / 12); }
+  const invested = P + monthly * years * 12;
+  const box = document.getElementById('cp-result');
+  box.style.display = 'block';
+  box.innerHTML = `<div class="result-label">${years}年後の資産</div>
+    <div class="result-value">${fmt(Math.round(total))} 円</div>
+    <div class="result-sub">
+      元本合計: <span>${fmt(invested)} 円</span><br>
+      運用益: <span class="positive">${fmt(Math.round(total - invested))} 円</span><br>
+      増加率: <span class="positive">+${((total/invested-1)*100).toFixed(1)}%</span>
+    </div>`;
+}
+</script>
+</body>
+</html>
